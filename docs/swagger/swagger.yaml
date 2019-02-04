@@ -1,0 +1,59 @@
+basePath: /api/v1
+definitions:
+  main.HTTPError:
+    properties:
+      code:
+        type: string
+    type: object
+  main.User:
+    properties:
+      gender:
+        type: string
+      group_id:
+        type: integer
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+host: localhost:1314
+info:
+  contact: {}
+  description: get users in a group
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Swagger Example API
+  version: "1.0"
+paths:
+  /groups/{group_id}/users:
+    get:
+      consumes:
+      - application/json
+      description: get users in a group
+      parameters:
+      - description: Group ID
+        in: path
+        name: group_id
+        required: true
+        type: integer
+      - description: Gender
+        in: query
+        name: gender
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.User'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.HTTPError'
+            type: object
+      summary: get users
+swagger: "2.0"
