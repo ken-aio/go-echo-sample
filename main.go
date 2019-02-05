@@ -1,12 +1,14 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
 	echoSwagger "github.com/ken-aio/echo-swagger"
 	_ "github.com/ken-aio/go-echo-sample/docs"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/pkg/errors"
 )
 
@@ -33,9 +35,18 @@ type HTTPError struct {
 func main() {
 	e := echo.New()
 
+	initMiddleware(e)
 	initRouting(e)
 
 	e.Logger.Fatal(e.Start(":1314"))
+}
+
+func initMiddleware(e *echo.Echo) {
+	e.Use(middleware.Recover())
+	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+		Format: `${time_rfc3339_nano} ${host} ${method} ${uri} ${status} ${header:my-header}` + "\n",
+	}))
+	e.Use(myMiddleware)
 }
 
 func initRouting(e *echo.Echo) {
@@ -47,6 +58,7 @@ func initRouting(e *echo.Echo) {
 }
 
 func hello(c echo.Context) error {
+	log.Println("hello action")
 	return c.JSON(http.StatusOK, map[string]string{"hello": "world"})
 }
 
@@ -77,4 +89,15 @@ func getUsers(c echo.Context) error {
 		users = append(users, &User{ID: 4, GroupID: groupID, Name: "Yoshiko", Gender: "woman"})
 	}
 	return c.JSON(http.StatusOK, users)
+}
+
+func myMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		log.Println("before action")
+		if err := next(c); err != nil {
+			c.Error(err)
+		}
+		log.Println("after action")
+		return nil
+	}
 }
