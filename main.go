@@ -20,6 +20,11 @@ type User struct {
 	Gender  string `json:"gender"`
 }
 
+// Req is request body
+type Req struct {
+	Query string `json:"query"`
+}
+
 // HTTPError is error response
 type HTTPError struct {
 	Code string `json:"code"`
@@ -46,7 +51,7 @@ func initMiddleware(e *echo.Echo) {
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		Format: `${time_rfc3339_nano} ${host} ${method} ${uri} ${status} ${header:my-header}` + "\n",
 	}))
-	e.Use(myMiddleware)
+	//e.Use(myMiddleware)
 }
 
 func initRouting(e *echo.Echo) {
@@ -54,12 +59,45 @@ func initRouting(e *echo.Echo) {
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	e.GET("/", hello)
+	e.POST("/", postHello)
+	e.PUT("/", putHello)
+	e.DELETE("/", deleteHello)
+	e.GET("/param", getParam)
+	e.POST("/param", postParam)
 	e.GET("/api/v1/groups/:group_id/users", getUsers)
 }
 
 func hello(c echo.Context) error {
 	log.Println("hello action")
 	return c.JSON(http.StatusOK, map[string]string{"hello": "world"})
+}
+
+func postHello(c echo.Context) error {
+	return c.JSON(http.StatusOK, map[string]string{"hello": "post"})
+}
+
+func putHello(c echo.Context) error {
+	return c.JSON(http.StatusOK, map[string]string{"hello": "put"})
+}
+
+func deleteHello(c echo.Context) error {
+	return c.JSON(http.StatusOK, map[string]string{"hello": "delete"})
+}
+
+func getParam(c echo.Context) error {
+	r := &Req{}
+	if err := c.Bind(r); err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, map[string]interface{}{"success": true, "message": "good get", "param": r.Query})
+}
+
+func postParam(c echo.Context) error {
+	r := &Req{}
+	if err := c.Bind(r); err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, map[string]interface{}{"success": true, "message": "good post", "param": r.Query})
 }
 
 // getUsers is getting users.
